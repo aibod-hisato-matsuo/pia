@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="meta.title">BAITEN Web Store — 地域のものづくりを応援</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --aibod-cyan:        #00C4CC;
+      --aibod-cyan-dark:   #009BA2;
+      --aibod-cyan-light:  #E0F9FA;
+      --aibod-navy:        #0A2540;
+      --aibod-navy-mid:    #1A3A5C;
+      --color-primary:     var(--aibod-cyan);
+      --color-primary-dark: var(--aibod-cyan-dark);
+      --color-on-primary:  #FFFFFF;
+      --color-nav-bg:      var(--aibod-navy);
+      --color-accent:      #C8954A;   /* 地域・手工芸の温かみ */
+      --color-accent-light:#FFF3E0;
+      --color-bg:          #FAFAF7;   /* わずかにウォームホワイト */
+      --color-surface:     #FFFFFF;
+      --color-border:      #E5E0D8;
+      --color-text-primary:#2C2416;   /* 温かみのあるダーク */
+      --color-text-second: #6B5E4E;
+      --color-text-hint:   #A89880;
+      --shadow-card:       0 2px 16px rgba(44,36,22,0.07);
+      --shadow-nav:        0 1px 0 rgba(10,37,64,0.10);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+      font-size: 16px; line-height: 1.75;
+      color: var(--color-text-primary);
+      background: var(--color-bg);
+    }
+    body.lang-en { font-family: 'Inter', sans-serif; }
+
+    /* ━━ NavBar ━━ */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 64px;
+      background: var(--color-nav-bg);
+      display: flex; align-items: center;
+      padding: 0 24px; z-index: 100;
+      box-shadow: var(--shadow-nav);
+    }
+    .navbar-logo {
+      font-size: 18px; font-weight: 700; color: var(--color-primary);
+      text-decoration: none; letter-spacing: 0.05em;
+    }
+    .navbar-sub {
+      font-size: 11px; color: rgba(255,255,255,0.45);
+      margin-left: 12px; font-weight: 400; letter-spacing: 0.05em;
+    }
+    .navbar-links { display: flex; gap: 28px; margin-left: auto; margin-right: 20px; }
+    .navbar-links a {
+      color: rgba(255,255,255,0.72); font-size: 14px; font-weight: 500;
+      text-decoration: none; transition: color 0.2s;
+    }
+    .navbar-links a:hover { color: var(--color-primary); }
+    .lang-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.35);
+      color: #fff; padding: 5px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .lang-btn:hover { background: rgba(255,255,255,0.12); }
+    .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; margin-left: auto; margin-right: 10px; }
+    .hamburger span { display: block; width: 20px; height: 2px; background: #fff; margin: 4px 0; border-radius: 2px; }
+
+    /* ━━ ヒーロー（BtoC：明るく・地域感） ━━ */
+    .hero {
+      padding: 128px 0 80px;
+      background: var(--color-bg);
+      position: relative; overflow: hidden;
+    }
+    .hero-bg-text {
+      position: absolute; top: 60px; right: -20px;
+      font-size: clamp(80px, 14vw, 160px); font-weight: 700;
+      color: rgba(0,196,204,0.06); letter-spacing: -0.04em;
+      pointer-events: none; user-select: none; line-height: 1;
+    }
+    .hero-split { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--color-accent); margin-bottom: 20px;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: block; width: 24px; height: 2px;
+      background: var(--color-accent); border-radius: 1px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 4vw, 48px); font-weight: 700;
+      color: var(--aibod-navy); line-height: 1.25; margin-bottom: 20px;
+    }
+    .hero h1 em { font-style: normal; color: var(--color-primary); }
+    .hero-desc {
+      font-size: 15px; color: var(--color-text-second);
+      margin-bottom: 36px; max-width: 420px; line-height: 1.8;
+    }
+    .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-visual {
+      background: linear-gradient(135deg, var(--aibod-cyan-light) 0%, #fff 60%);
+      border-radius: 24px; border: 1px solid var(--color-border);
+      aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .hero-visual-inner {
+      text-align: center;
+    }
+    .hero-visual-icon { font-size: 64px; margin-bottom: 12px; }
+    .hero-visual-label { font-size: 13px; color: var(--color-text-second); font-weight: 500; }
+    .hero-badge {
+      position: absolute; bottom: 20px; left: 20px;
+      background: #fff; border-radius: 12px; padding: 10px 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; font-weight: 600; color: var(--aibod-navy);
+    }
+    .hero-badge-dot { width: 8px; height: 8px; background: var(--color-primary); border-radius: 50%; }
+
+    /* ━━ コンテナ ━━ */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ━━ ボタン ━━ */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--color-primary); color: var(--color-on-primary);
+      border: none; border-radius: 12px; padding: 14px 28px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-primary:hover { background: var(--color-primary-dark); transform: translateY(-2px); }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; color: var(--aibod-navy);
+      border: 1.5px solid var(--color-border);
+      border-radius: 12px; padding: 12px 26px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-outline:hover { border-color: var(--aibod-navy); background: var(--color-bg); }
+
+    /* ━━ セクション共通 ━━ */
+    section { padding: 80px 0; }
+    .section-header { text-align: center; margin-bottom: 52px; }
+    .section-eyebrow {
+      display: inline-block;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--color-accent); margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(22px, 3vw, 32px); font-weight: 700;
+      color: var(--aibod-navy); margin: 0 0 14px;
+    }
+    .section-desc { font-size: 15px; color: var(--color-text-second); max-width: 520px; margin: 0 auto; }
+
+    /* ━━ 商品グリッド ━━ */
+    .products-bg { background: var(--color-surface); }
+    .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .product-card {
+      background: var(--color-surface);
+      border-radius: 20px; border: 1px solid var(--color-border);
+      overflow: hidden; transition: all 0.25s;
+    }
+    .product-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(44,36,22,0.12); }
+    .product-img {
+      aspect-ratio: 4/3;
+      background: linear-gradient(135deg, #F0FDF4 0%, var(--aibod-cyan-light) 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 56px; position: relative;
+    }
+    .product-tag {
+      position: absolute; top: 12px; left: 12px;
+      background: var(--color-accent); color: #fff;
+      font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+    }
+    .product-body { padding: 20px; }
+    .product-region {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      color: var(--color-text-hint); text-transform: uppercase; margin-bottom: 6px;
+    }
+    .product-name { font-size: 16px; font-weight: 700; color: var(--aibod-navy); margin-bottom: 8px; }
+    .product-desc { font-size: 13px; color: var(--color-text-second); line-height: 1.6; margin-bottom: 16px; }
+    .product-footer { display: flex; align-items: center; justify-content: space-between; }
+    .product-price { font-size: 20px; font-weight: 700; color: var(--aibod-navy); }
+    .product-price span { font-size: 12px; font-weight: 400; color: var(--color-text-hint); margin-left: 2px; }
+    .btn-cart {
+      background: var(--color-primary); color: #fff;
+      border: none; border-radius: 10px; padding: 8px 16px;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-cart:hover { background: var(--color-primary-dark); }
+
+    /* ━━ ストーリーセクション ━━ */
+    .story-bg { background: var(--aibod-navy); }
+    .story-split { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .story-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+      color: var(--color-primary); text-transform: uppercase; margin-bottom: 16px;
+    }
+    .story-title { font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: #fff; margin-bottom: 20px; line-height: 1.4; }
+    .story-desc { font-size: 15px; color: rgba(255,255,255,0.65); line-height: 1.85; margin-bottom: 32px; }
+    .story-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .stat-item { }
+    .stat-number { font-size: 32px; font-weight: 700; color: var(--color-primary); line-height: 1; margin-bottom: 4px; }
+    .stat-label { font-size: 13px; color: rgba(255,255,255,0.55); }
+    .story-visual {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px; padding: 32px; display: grid;
+      grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .location-card {
+      background: rgba(255,255,255,0.07); border-radius: 12px; padding: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .location-dot { width: 8px; height: 8px; background: var(--color-primary); border-radius: 50%; margin-bottom: 8px; }
+    .location-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 2px; }
+    .location-count { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    /* ━━ CTAセクション ━━ */
+    .cta-section { padding: 80px 0; text-align: center; background: var(--color-bg); }
+    .cta-inner {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 24px; padding: 56px 48px;
+      max-width: 640px; margin: 0 auto;
+      box-shadow: var(--shadow-card);
+    }
+    .cta-icon { font-size: 40px; margin-bottom: 16px; }
+    .cta-inner h2 { font-size: 26px; font-weight: 700; color: var(--aibod-navy); margin-bottom: 12px; }
+    .cta-inner p { font-size: 15px; color: var(--color-text-second); margin-bottom: 28px; }
+    .cta-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .line-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #06C755; color: #fff;
+      border: none; border-radius: 12px; padding: 14px 24px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .line-btn:hover { background: #05A847; transform: translateY(-2px); }
+
+    /* ━━ フッター ━━ */
+    footer {
+      background: var(--aibod-navy); color: rgba(255,255,255,0.6);
+      padding: 48px 0 24px;
+    }
+    .footer-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+    .footer-brand .footer-logo { font-size: 20px; font-weight: 700; color: var(--color-primary); display: block; margin-bottom: 4px; }
+    .footer-brand .footer-sub { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .footer-links { display: flex; gap: 32px; }
+    .footer-links a { color: rgba(255,255,255,0.5); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--color-primary); }
+    .footer-copy { text-align: center; font-size: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; }
+
+    /* ━━ アニメ ━━ */
+    .fade-up { opacity: 0; transform: translateY(20px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .fade-up:nth-child(2) { transition-delay: 0.08s; }
+    .fade-up:nth-child(3) { transition-delay: 0.16s; }
+
+    /* ━━ レスポンシブ ━━ */
+    @media (max-width: 1024px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .navbar-links { display: none; }
+      .hamburger { display: block; }
+      .hero-split, .story-split { grid-template-columns: 1fr; gap: 36px; }
+      .hero-visual { display: none; }
+      section { padding: 56px 0; }
+      .footer-top { flex-direction: column; gap: 24px; }
+      .footer-links { flex-wrap: wrap; gap: 16px; }
+      .navbar-links.open {
+        display: flex; flex-direction: column;
+        position: fixed; top: 64px; left: 0; right: 0;
+        background: var(--aibod-navy); padding: 16px 24px 24px; gap: 4px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+      .navbar-links.open a { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    }
+    @media (max-width: 640px) {
+      .product-grid { grid-template-columns: 1fr; }
+      .story-stats { grid-template-columns: repeat(2, 1fr); }
+      .cta-inner { padding: 36px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ━━ NavBar ━━ -->
+<nav class="navbar" role="navigation">
+  <a href="/" class="navbar-logo">BAITEN</a>
+  <span class="navbar-sub" data-i18n="nav.sub">Web Store</span>
+  <button class="hamburger" onclick="toggleMenu()" aria-label="メニュー">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="navbar-links" id="navLinks">
+    <a href="#products" data-i18n="nav.products">商品</a>
+    <a href="#story" data-i18n="nav.story">ストーリー</a>
+    <a href="#contact" data-i18n="nav.contact">お問い合わせ</a>
+  </div>
+  <button class="lang-btn" onclick="switchLang()" aria-label="言語切替">
+    <span data-i18n="nav.lang_switch">EN</span>
+  </button>
+</nav>
+
+<!-- ━━ Hero ━━ -->
+<section class="hero" id="top">
+  <div class="hero-bg-text">BAITEN</div>
+  <div class="container">
+    <div class="hero-split">
+      <div>
+        <div class="hero-eyebrow" data-i18n="hero.eyebrow">Hamadori Local Craft</div>
+        <h1><span data-i18n="hero.title1">地域から生まれる、</span><br><em data-i18n="hero.title2">小さなものづくり</em><span data-i18n="hero.title3">の光</span></h1>
+        <p class="hero-desc" data-i18n="hero.desc">福島県浜通り発の無人販売システム「BAITEN STAND」から生まれた、地域の"いいもの"を届けるオンラインストアです。</p>
+        <div class="hero-ctas">
+          <a href="#products" class="btn-primary" data-i18n="hero.cta1">商品を見る</a>
+          <a href="#story" class="btn-outline" data-i18n="hero.cta2">ストーリーを読む</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-visual-inner">
+          <div class="hero-visual-icon">🏪</div>
+          <div class="hero-visual-label" data-i18n="hero.visual_label">BAITEN STAND 稼働中</div>
+        </div>
+        <div class="hero-badge">
+          <div class="hero-badge-dot"></div>
+          <span data-i18n="hero.badge">8拠点で稼働中</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Products ━━ -->
+<section class="products-bg" id="products">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow" data-i18n="products.eyebrow">Products</div>
+      <h2 class="section-title" data-i18n="products.title">地域企業の技術が光る、特別なアイテム</h2>
+      <p class="section-desc" data-i18n="products.desc">インテリア雑貨を中心に、浜通りの技術と想いが込められた厳選品をお届けします。</p>
+    </div>
+    <div class="product-grid">
+      <div class="product-card fade-up">
+        <div class="product-img">
+          🪔
+          <div class="product-tag" data-i18n="products.tag_new">新着</div>
+        </div>
+        <div class="product-body">
+          <div class="product-region" data-i18n="products.region1">大熊町 · 金属加工</div>
+          <div class="product-name" data-i18n="products.name1">鉄製ランタン「浜の灯」</div>
+          <div class="product-desc" data-i18n="products.desc1">熟練の職人が一つひとつ手作りした鉄製ランタン。浜通りの夕景をイメージした温かな光を演出します。</div>
+          <div class="product-footer">
+            <div class="product-price">¥12,800<span data-i18n="products.tax">（税込）</span></div>
+            <button class="btn-cart" data-i18n="products.cart">カートへ</button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card fade-up">
+        <div class="product-img" style="background: linear-gradient(135deg, #FFF8F0 0%, #FFE4C4 100%);">
+          🏺
+        </div>
+        <div class="product-body">
+          <div class="product-region" data-i18n="products.region2">富岡町 · 陶芸</div>
+          <div class="product-name" data-i18n="products.name2">浜通り白磁花器</div>
+          <div class="product-desc" data-i18n="products.desc2">地元の土を使った白磁の花器。シンプルな造形の中に職人の技が凝縮されています。</div>
+          <div class="product-footer">
+            <div class="product-price">¥8,500<span data-i18n="products.tax">（税込）</span></div>
+            <button class="btn-cart" data-i18n="products.cart">カートへ</button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card fade-up">
+        <div class="product-img" style="background: linear-gradient(135deg, #F0F9F0 0%, #C8E6C9 100%);">
+          🧴
+          <div class="product-tag" style="background: var(--aibod-cyan-dark);" data-i18n="products.tag_popular">人気</div>
+        </div>
+        <div class="product-body">
+          <div class="product-region" data-i18n="products.region3">楢葉町 · 自然素材</div>
+          <div class="product-name" data-i18n="products.name3">浜通り林業 木製コースター</div>
+          <div class="product-desc" data-i18n="products.desc3">地元杉材から作った天然木のコースターセット。木の温もりと自然の香りをお届けします。</div>
+          <div class="product-footer">
+            <div class="product-price">¥3,200<span data-i18n="products.tax">（税込）</span></div>
+            <button class="btn-cart" data-i18n="products.cart">カートへ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Story ━━ -->
+<section class="story-bg" id="story">
+  <div class="container">
+    <div class="story-split">
+      <div>
+        <div class="story-label" data-i18n="story.label">About BAITEN STAND</div>
+        <h2 class="story-title" data-i18n="story.title">震災の地から始まった、<br>小さな小売インフラ</h2>
+        <p class="story-desc" data-i18n="story.desc">BAITEN STANDは、東日本大震災からの復興の地で草の根レベルからの小売インフラ構築を目指して生まれました。浜通りは、良い意味で「過疎地域の課題の先進モデル」であり、地域が持つポテンシャルに注目が集まっています。</p>
+        <div class="story-stats">
+          <div class="stat-item">
+            <div class="stat-number">8</div>
+            <div class="stat-label" data-i18n="story.stat1">稼働拠点数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">4</div>
+            <div class="stat-label" data-i18n="story.stat2">対応自治体</div>
+          </div>
+        </div>
+      </div>
+      <div class="story-visual">
+        <div class="location-card">
+          <div class="location-dot"></div>
+          <div class="location-name" data-i18n="story.loc1">大熊町</div>
+          <div class="location-count" data-i18n="story.locn">2拠点</div>
+        </div>
+        <div class="location-card">
+          <div class="location-dot"></div>
+          <div class="location-name" data-i18n="story.loc2">富岡町</div>
+          <div class="location-count" data-i18n="story.locn2">2拠点</div>
+        </div>
+        <div class="location-card">
+          <div class="location-dot"></div>
+          <div class="location-name" data-i18n="story.loc3">楢葉町</div>
+          <div class="location-count" data-i18n="story.locn3">2拠点</div>
+        </div>
+        <div class="location-card">
+          <div class="location-dot"></div>
+          <div class="location-name" data-i18n="story.loc4">南相馬市</div>
+          <div class="location-count" data-i18n="story.locn4">2拠点</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Contact ━━ -->
+<section class="cta-section" id="contact">
+  <div class="container">
+    <div class="cta-inner">
+      <div class="cta-icon">💬</div>
+      <h2 data-i18n="cta.title">お気軽にご相談ください</h2>
+      <p data-i18n="cta.desc">商品へのご質問、地域企業とのコラボ相談、BAITEN STAND導入のご検討など、どんな小さなことでもどうぞ。</p>
+      <div class="cta-actions">
+        <a href="https://lin.ee/g3XAwz3" class="line-btn" data-i18n="cta.line">LINE で相談する</a>
+        <a href="mailto:info@aibod.co.jp" class="btn-outline" data-i18n="cta.email">メールで問い合わせ</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Footer ━━ -->
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <span class="footer-logo">BAITEN Web Store</span>
+        <span class="footer-sub">powered by AIBOD Inc.</span>
+      </div>
+      <div class="footer-links">
+        <a href="#products" data-i18n="nav.products">商品</a>
+        <a href="#story" data-i18n="nav.story">ストーリー</a>
+        <a href="#contact" data-i18n="nav.contact">お問い合わせ</a>
+        <a href="#" data-i18n="footer.privacy">プライバシーポリシー</a>
+      </div>
+    </div>
+    <p class="footer-copy">© AIBOD Inc. / BAITEN STAND</p>
+  </div>
+</footer>
+
+<script>
+const I18N = {
+  ja: {
+    meta: { title: "BAITEN Web Store — 地域のものづくりを応援" },
+    nav: { sub: "Web Store", products: "商品", story: "ストーリー", contact: "お問い合わせ", lang_switch: "EN" },
+    hero: {
+      eyebrow: "Hamadori Local Craft",
+      title1: "地域から生まれる、", title2: "小さなものづくり", title3: "の光",
+      desc: "福島県浜通り発の無人販売システム「BAITEN STAND」から生まれた、地域の"いいもの"を届けるオンラインストアです。",
+      cta1: "商品を見る", cta2: "ストーリーを読む",
+      visual_label: "BAITEN STAND 稼働中", badge: "8拠点で稼働中"
+    },
+    products: {
+      eyebrow: "Products",
+      title: "地域企業の技術が光る、特別なアイテム",
+      desc: "インテリア雑貨を中心に、浜通りの技術と想いが込められた厳選品をお届けします。",
+      tag_new: "新着", tag_popular: "人気", tax: "（税込）", cart: "カートへ",
+      region1: "大熊町 · 金属加工", name1: "鉄製ランタン「浜の灯」",
+      desc1: "熟練の職人が一つひとつ手作りした鉄製ランタン。浜通りの夕景をイメージした温かな光を演出します。",
+      region2: "富岡町 · 陶芸", name2: "浜通り白磁花器",
+      desc2: "地元の土を使った白磁の花器。シンプルな造形の中に職人の技が凝縮されています。",
+      region3: "楢葉町 · 自然素材", name3: "浜通り林業 木製コースター",
+      desc3: "地元杉材から作った天然木のコースターセット。木の温もりと自然の香りをお届けします。"
+    },
+    story: {
+      label: "About BAITEN STAND",
+      title: "震災の地から始まった、小さな小売インフラ",
+      desc: "BAITEN STANDは、東日本大震災からの復興の地で草の根レベルからの小売インフラ構築を目指して生まれました。浜通りは、良い意味で「過疎地域の課題の先進モデル」であり、地域が持つポテンシャルに注目が集まっています。",
+      stat1: "稼働拠点数", stat2: "対応自治体",
+      loc1: "大熊町", locn: "2拠点", loc2: "富岡町", locn2: "2拠点",
+      loc3: "楢葉町", locn3: "2拠点", loc4: "南相馬市", locn4: "2拠点"
+    },
+    cta: { title: "お気軽にご相談ください", desc: "商品へのご質問、地域企業とのコラボ相談、BAITEN STAND導入のご検討など、どんな小さなことでもどうぞ。", line: "LINE で相談する", email: "メールで問い合わせ" },
+    footer: { privacy: "プライバシーポリシー" }
+  },
+  en: {
+    meta: { title: "BAITEN Web Store — Supporting Local Crafts" },
+    nav: { sub: "Web Store", products: "Products", story: "Story", contact: "Contact", lang_switch: "日本語" },
+    hero: {
+      eyebrow: "Hamadori Local Craft",
+      title1: "Where local craft ", title2: "finds its light", title3: "",
+      desc: "An online store born from BAITEN STAND — an unmanned retail system from Fukushima's Hamadori region — bringing the region's finest goods to you.",
+      cta1: "Browse Products", cta2: "Read the Story",
+      visual_label: "BAITEN STAND Active", badge: "8 locations running"
+    },
+    products: {
+      eyebrow: "Products",
+      title: "Exceptional items born from local craftsmanship",
+      desc: "Curated interior goods and crafts from Hamadori artisans, made with care and regional pride.",
+      tag_new: "New", tag_popular: "Popular", tax: "(incl. tax)", cart: "Add to Cart",
+      region1: "Okuma · Metalwork", name1: "Iron Lantern 'Hama no Hi'",
+      desc1: "Hand-crafted iron lantern by skilled artisans. Evokes the warm sunset light of the Hamadori coast.",
+      region2: "Tomioka · Ceramics", name2: "Hamadori White Porcelain Vase",
+      desc2: "A white porcelain vase made from local clay. Simple form, deep craftsmanship.",
+      region3: "Naraha · Natural Materials", name3: "Naraha Cedar Coaster Set",
+      desc3: "Natural wood coasters from local cedar. Bring warmth and the scent of the forest to your table."
+    },
+    story: {
+      label: "About BAITEN STAND",
+      title: "A small retail infrastructure\nborn from disaster recovery",
+      desc: "BAITEN STAND was created to build grassroots retail infrastructure in areas recovering from the 2011 earthquake. Hamadori is a leading model for rural revitalization, and its potential is drawing attention.",
+      stat1: "Active Locations", stat2: "Municipalities",
+      loc1: "Okuma", locn: "2 sites", loc2: "Tomioka", locn2: "2 sites",
+      loc3: "Naraha", locn3: "2 sites", loc4: "Minamisoma", locn4: "2 sites"
+    },
+    cta: { title: "Feel free to reach out", desc: "Product questions, collaboration inquiries, or BAITEN STAND installation — we're happy to help with anything.", line: "Chat on LINE", email: "Send an Email" },
+    footer: { privacy: "Privacy Policy" }
+  }
+};
+
+let currentLang = localStorage.getItem('aibod-lang') || 'ja';
+function t(key) { const ks=key.split('.'); let v=I18N[currentLang]; for(const k of ks){v=v?.[k];} return v||key; }
+function applyI18n() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.body.className = currentLang === 'en' ? 'lang-en' : '';
+}
+function switchLang() { currentLang = currentLang==='ja'?'en':'ja'; localStorage.setItem('aibod-lang',currentLang); applyI18n(); }
+function toggleMenu() { document.getElementById('navLinks').classList.toggle('open'); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyI18n();
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+});
+</script>
+</body>
+</html>

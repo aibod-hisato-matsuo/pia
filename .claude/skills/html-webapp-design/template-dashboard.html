@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="meta.title">AIBOD Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --aibod-cyan:       #00C4CC;
+      --aibod-cyan-dark:  #009BA2;
+      --aibod-cyan-light: #E0F9FA;
+      --aibod-navy:       #0A2540;
+      --aibod-navy-mid:   #1A3A5C;
+      --color-primary:    var(--aibod-cyan);
+      --color-nav-bg:     var(--aibod-navy);
+      --color-bg:         #F0F3F7;
+      --color-surface:    #FFFFFF;
+      --color-border:     #DDE2EA;
+      --color-text-primary: #0A2540;
+      --color-text-second: #5A6A80;
+      --color-text-hint:  #98A8BC;
+      --color-success:    #2ECC71;
+      --color-warning:    #F39C12;
+      --color-error:      #E74C3C;
+      --sidebar-w:        240px;
+      --topbar-h:         60px;
+      --shadow-card:      0 1px 8px rgba(10,37,64,0.07);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+      font-size: 14px; line-height: 1.6;
+      color: var(--color-text-primary);
+      background: var(--color-bg);
+      min-height: 100vh;
+    }
+    body.lang-en { font-family: 'Inter', sans-serif; }
+
+    /* ━━ レイアウト ━━ */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ━━ サイドバー ━━ */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--color-nav-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 50;
+    }
+    .sidebar-logo {
+      height: var(--topbar-h);
+      display: flex; align-items: center;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .sidebar-logo-text { font-size: 18px; font-weight: 700; color: var(--color-primary); }
+    .sidebar-logo-sub  { font-size: 10px; color: rgba(255,255,255,0.35); margin-left: 8px; font-weight: 400; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+    .nav-section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(255,255,255,0.3); padding: 16px 8px 8px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      color: rgba(255,255,255,0.65); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s; text-decoration: none; margin-bottom: 2px;
+    }
+    .nav-item:hover  { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+    .nav-item.active { background: rgba(0,196,204,0.15); color: var(--color-primary); }
+    .nav-item.active .nav-icon { color: var(--color-primary); }
+    .nav-icon { width: 18px; text-align: center; font-size: 16px; }
+    .nav-badge {
+      margin-left: auto; background: var(--color-primary);
+      color: #fff; font-size: 10px; font-weight: 700;
+      padding: 1px 7px; border-radius: 10px;
+    }
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .user-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .user-row:hover { background: rgba(255,255,255,0.07); }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--aibod-cyan-light); display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--aibod-cyan-dark); flex-shrink: 0;
+    }
+    .user-name  { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }
+    .user-role  { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    /* ━━ メインエリア ━━ */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ━━ トップバー ━━ */
+    .topbar {
+      height: var(--topbar-h); background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center;
+      padding: 0 24px; gap: 16px;
+      position: sticky; top: 0; z-index: 40;
+    }
+    .topbar-title { font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
+    .topbar-breadcrumb { font-size: 13px; color: var(--color-text-hint); display: flex; align-items: center; gap: 6px; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .topbar-date { font-size: 13px; color: var(--color-text-hint); }
+    .lang-btn {
+      background: var(--aibod-cyan-light); border: none;
+      color: var(--aibod-cyan-dark); padding: 5px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+    }
+    .lang-btn:hover { background: var(--color-primary); color: #fff; }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--color-border);
+      background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: var(--color-text-second); transition: background 0.15s;
+    }
+    .icon-btn:hover { background: var(--color-bg); }
+
+    /* ━━ コンテンツ ━━ */
+    .content { padding: 24px; flex: 1; }
+
+    /* ━━ KPIカード ━━ */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: var(--color-surface);
+      border-radius: 14px; border: 1px solid var(--color-border);
+      padding: 20px; box-shadow: var(--shadow-card);
+    }
+    .kpi-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .kpi-label { font-size: 12px; font-weight: 600; color: var(--color-text-second); }
+    .kpi-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .kpi-icon.cyan   { background: var(--aibod-cyan-light); }
+    .kpi-icon.green  { background: #E8F8F1; }
+    .kpi-icon.orange { background: #FEF3E2; }
+    .kpi-icon.red    { background: #FDEDED; }
+    .kpi-value { font-size: 28px; font-weight: 700; color: var(--color-text-primary); line-height: 1; margin-bottom: 8px; }
+    .kpi-delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+    .kpi-delta.up   { background: #E8F8F1; color: var(--color-success); }
+    .kpi-delta.down { background: #FDEDED; color: var(--color-error); }
+
+    /* ━━ グラフエリア ━━ */
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .chart-card {
+      background: var(--color-surface);
+      border-radius: 14px; border: 1px solid var(--color-border);
+      padding: 20px; box-shadow: var(--shadow-card);
+    }
+    .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .chart-title { font-size: 14px; font-weight: 700; color: var(--color-text-primary); }
+    .chart-subtitle { font-size: 12px; color: var(--color-text-hint); margin-top: 2px; }
+    .chart-actions { display: flex; gap: 8px; }
+    .period-btn {
+      font-size: 12px; padding: 4px 10px; border-radius: 6px;
+      border: 1px solid var(--color-border); background: transparent;
+      color: var(--color-text-second); cursor: pointer; transition: all 0.15s;
+    }
+    .period-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+    .chart-wrap { position: relative; height: 200px; }
+
+    /* ━━ ドーナツ凡例 ━━ */
+    .donut-legend { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
+    .legend-label { color: var(--color-text-second); display: flex; align-items: center; }
+    .legend-val { font-weight: 700; color: var(--color-text-primary); }
+
+    /* ━━ テーブル ━━ */
+    .table-card {
+      background: var(--color-surface);
+      border-radius: 14px; border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-card); overflow: hidden;
+    }
+    .table-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .table-title { font-size: 14px; font-weight: 700; }
+    .search-input {
+      height: 34px; border: 1px solid var(--color-border); border-radius: 8px;
+      padding: 0 12px; font-size: 13px; width: 200px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: var(--color-primary); }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-hint); padding: 10px 20px; text-align: left;
+      background: var(--color-bg); border-bottom: 1px solid var(--color-border);
+    }
+    td { padding: 12px 20px; border-bottom: 1px solid var(--color-border); font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #FAFBFD; }
+    .status-pill {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .status-pill.active  { background: #E8F8F1; color: #1A8A52; }
+    .status-pill.pending { background: #FEF3E2; color: #A0660A; }
+    .status-pill.error   { background: #FDEDED; color: #C0392B; }
+
+    /* ━━ レスポンシブ ━━ */
+    @media (max-width: 1200px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 1024px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .content { padding: 16px; }
+    }
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ━━ Sidebar ━━ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-text">AIBOD</span>
+      <span class="sidebar-logo-sub" data-i18n="sidebar.sub">Dashboard</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label" data-i18n="sidebar.section1">Main</div>
+      <a class="nav-item active" href="#">
+        <span class="nav-icon">📊</span>
+        <span data-i18n="sidebar.overview">概要</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">🏭</span>
+        <span data-i18n="sidebar.factory">製造ライン</span>
+        <span class="nav-badge">3</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">⚡</span>
+        <span data-i18n="sidebar.energy">エネルギー</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">🔍</span>
+        <span data-i18n="sidebar.inspection">検査AI</span>
+      </a>
+      <div class="nav-section-label" data-i18n="sidebar.section2">System</div>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">📋</span>
+        <span data-i18n="sidebar.reports">レポート</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">⚙️</span>
+        <span data-i18n="sidebar.settings">設定</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar">HI</div>
+        <div>
+          <div class="user-name">Hisato I.</div>
+          <div class="user-role" data-i18n="sidebar.user_role">Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ━━ Main ━━ -->
+  <div class="main">
+    <!-- TopBar -->
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" data-i18n="topbar.title">ダッシュボード</div>
+        <div class="topbar-breadcrumb" data-i18n="topbar.breadcrumb">AIBOD › 概要</div>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-date" id="todayDate"></span>
+        <button class="lang-btn" onclick="switchLang()">
+          <span data-i18n="nav.lang_switch">EN</span>
+        </button>
+        <button class="icon-btn" aria-label="通知">🔔</button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label" data-i18n="kpi.sales">売上（月次）</span>
+            <div class="kpi-icon cyan">💰</div>
+          </div>
+          <div class="kpi-value">¥8.4M</div>
+          <span class="kpi-delta up">↑ 12.4%</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label" data-i18n="kpi.orders">受注件数</span>
+            <div class="kpi-icon green">📦</div>
+          </div>
+          <div class="kpi-value">247</div>
+          <span class="kpi-delta up">↑ 8.1%</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label" data-i18n="kpi.energy">電力消費 (kWh)</span>
+            <div class="kpi-icon orange">⚡</div>
+          </div>
+          <div class="kpi-value">1,842</div>
+          <span class="kpi-delta down">↓ 3.2%</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label" data-i18n="kpi.defect">不良率</span>
+            <div class="kpi-icon red">🔍</div>
+          </div>
+          <div class="kpi-value">0.8%</div>
+          <span class="kpi-delta up">↓ 0.3pt</span>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title" data-i18n="chart.sales_title">売上推移</div>
+              <div class="chart-subtitle" data-i18n="chart.sales_sub">過去6ヶ月</div>
+            </div>
+            <div class="chart-actions">
+              <button class="period-btn" data-i18n="chart.period1m">1M</button>
+              <button class="period-btn active" data-i18n="chart.period6m">6M</button>
+              <button class="period-btn" data-i18n="chart.period1y">1Y</button>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title" data-i18n="chart.segment_title">売上構成</div>
+              <div class="chart-subtitle" data-i18n="chart.segment_sub">事業別</div>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="donutChart"></canvas>
+          </div>
+          <div class="donut-legend" id="donutLegend"></div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title" data-i18n="table.title">最近のアラート</div>
+          <input class="search-input" type="search" data-i18n-placeholder="table.search" placeholder="検索...">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="table.col_id">ID</th>
+              <th data-i18n="table.col_name">デバイス名</th>
+              <th data-i18n="table.col_type">種別</th>
+              <th data-i18n="table.col_time">発生時刻</th>
+              <th data-i18n="table.col_status">ステータス</th>
+            </tr>
+          </thead>
+          <tbody id="alertTable">
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const I18N = {
+  ja: {
+    meta: { title: "AIBOD Dashboard" },
+    nav: { lang_switch: "EN" },
+    sidebar: {
+      sub: "Dashboard", section1: "Main", section2: "System",
+      overview: "概要", factory: "製造ライン", energy: "エネルギー",
+      inspection: "検査AI", reports: "レポート", settings: "設定", user_role: "Admin"
+    },
+    topbar: { title: "ダッシュボード", breadcrumb: "AIBOD › 概要" },
+    kpi: { sales: "売上（月次）", orders: "受注件数", energy: "電力消費 (kWh)", defect: "不良率" },
+    chart: {
+      sales_title: "売上推移", sales_sub: "過去6ヶ月",
+      segment_title: "売上構成", segment_sub: "事業別",
+      period1m: "1M", period6m: "6M", period1y: "1Y"
+    },
+    table: { title: "最近のアラート", search: "検索...", col_id: "ID", col_name: "デバイス名", col_type: "種別", col_time: "発生時刻", col_status: "ステータス" },
+    status: { active: "正常", pending: "確認中", error: "異常" },
+    segments: ["製造AI", "BAITEN STAND", "エネルギー", "その他"]
+  },
+  en: {
+    meta: { title: "AIBOD Dashboard" },
+    nav: { lang_switch: "日本語" },
+    sidebar: {
+      sub: "Dashboard", section1: "Main", section2: "System",
+      overview: "Overview", factory: "Factory Line", energy: "Energy",
+      inspection: "Inspection AI", reports: "Reports", settings: "Settings", user_role: "Admin"
+    },
+    topbar: { title: "Dashboard", breadcrumb: "AIBOD › Overview" },
+    kpi: { sales: "Revenue (Monthly)", orders: "Orders", energy: "Power Usage (kWh)", defect: "Defect Rate" },
+    chart: {
+      sales_title: "Revenue Trend", sales_sub: "Last 6 months",
+      segment_title: "Revenue Mix", segment_sub: "By segment",
+      period1m: "1M", period6m: "6M", period1y: "1Y"
+    },
+    table: { title: "Recent Alerts", search: "Search...", col_id: "ID", col_name: "Device", col_type: "Type", col_time: "Time", col_status: "Status" },
+    status: { active: "Normal", pending: "Checking", error: "Error" },
+    segments: ["Mfg AI", "BAITEN STAND", "Energy", "Other"]
+  }
+};
+
+const ALERT_DATA = [
+  { id: "ALT-041", name: "Edge GW #03", type: "HEMS", time: "09:42", status: "active" },
+  { id: "ALT-040", name: "Camera #07",  type: "検査AI", time: "08:15", status: "pending" },
+  { id: "ALT-039", name: "PLC Line B",  type: "製造",  time: "07:58", status: "error" },
+  { id: "ALT-038", name: "Edge GW #01", type: "HEMS",  time: "06:31", status: "active" },
+  { id: "ALT-037", name: "BAITEN #04",  type: "販売",  time: "05:12", status: "active" },
+];
+
+let currentLang = localStorage.getItem('aibod-lang') || 'ja';
+function t(key) { const ks=key.split('.'); let v=I18N[currentLang]; for(const k of ks){v=v?.[k];} return v||key; }
+
+function applyI18n() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
+  document.body.className = currentLang === 'en' ? 'lang-en' : '';
+  renderTable();
+  renderDonutLegend();
+}
+function switchLang() { currentLang = currentLang==='ja'?'en':'ja'; localStorage.setItem('aibod-lang',currentLang); applyI18n(); }
+
+function renderTable() {
+  const tbody = document.getElementById('alertTable');
+  tbody.innerHTML = ALERT_DATA.map(r => `
+    <tr>
+      <td><span style="font-family:monospace;font-size:12px;color:var(--color-text-hint)">${r.id}</span></td>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.type}</td>
+      <td>${r.time}</td>
+      <td><span class="status-pill ${r.status}">${t('status.'+r.status)}</span></td>
+    </tr>`).join('');
+}
+
+function renderDonutLegend() {
+  const segs = t('segments');
+  const colors = ['#00C4CC','#0A2540','#2ECC71','#98A8BC'];
+  const vals   = [45, 30, 18, 7];
+  document.getElementById('donutLegend').innerHTML = segs.map((s,i) => `
+    <div class="legend-item">
+      <span class="legend-label"><span class="legend-dot" style="background:${colors[i]}"></span>${s}</span>
+      <span class="legend-val">${vals[i]}%</span>
+    </div>`).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyI18n();
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString(currentLang==='ja'?'ja-JP':'en-US', { month:'short', day:'numeric', year:'numeric' });
+
+  // Line Chart
+  const lCtx = document.getElementById('lineChart').getContext('2d');
+  new Chart(lCtx, {
+    type: 'line',
+    data: {
+      labels: ['10月','11月','12月','1月','2月','3月'],
+      datasets: [{
+        label: '売上',
+        data: [5.2, 6.1, 7.4, 6.8, 7.9, 8.4],
+        borderColor: '#00C4CC', borderWidth: 2.5,
+        backgroundColor: 'rgba(0,196,204,0.10)',
+        fill: true, tension: 0.4,
+        pointBackgroundColor: '#00C4CC', pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#98A8BC' } },
+        y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, color: '#98A8BC', callback: v => '¥'+v+'M' }, border: { display: false } }
+      }
+    }
+  });
+
+  // Donut Chart
+  const dCtx = document.getElementById('donutChart').getContext('2d');
+  new Chart(dCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['製造AI','BAITEN','エネルギー','その他'],
+      datasets: [{ data: [45,30,18,7], backgroundColor: ['#00C4CC','#0A2540','#2ECC71','#DDE2EA'], borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '68%' }
+  });
+
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', () => { document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); });
+  });
+});
+</script>
+</body>
+</html>

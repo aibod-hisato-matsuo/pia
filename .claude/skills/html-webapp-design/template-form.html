@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="meta.title">お問い合わせ — AIBOD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --aibod-cyan:       #00C4CC;
+      --aibod-cyan-dark:  #009BA2;
+      --aibod-cyan-light: #E0F9FA;
+      --aibod-navy:       #0A2540;
+      --color-primary:    var(--aibod-cyan);
+      --color-nav-bg:     var(--aibod-navy);
+      --color-bg:         #F5F7FA;
+      --color-surface:    #FFFFFF;
+      --color-border:     #DDE2EA;
+      --color-text-primary:#0A2540;
+      --color-text-second: #5A6A80;
+      --color-text-hint:   #98A8BC;
+      --color-error:       #E74C3C;
+      --color-success:     #2ECC71;
+      --shadow-card:       0 4px 24px rgba(10,37,64,0.09);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+      font-size: 16px; line-height: 1.7;
+      color: var(--color-text-primary);
+      background: var(--color-bg); min-height: 100vh;
+    }
+    body.lang-en { font-family: 'Inter', sans-serif; }
+
+    /* ━━ NavBar ━━ */
+    .navbar {
+      height: 60px; background: var(--color-nav-bg);
+      display: flex; align-items: center; padding: 0 24px;
+    }
+    .navbar-logo { font-size: 18px; font-weight: 700; color: var(--color-primary); text-decoration: none; }
+    .lang-btn {
+      margin-left: auto; background: transparent;
+      border: 1px solid rgba(255,255,255,0.35); color: #fff;
+      padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .lang-btn:hover { background: rgba(255,255,255,0.12); }
+
+    /* ━━ ページレイアウト ━━ */
+    .page-wrap {
+      min-height: calc(100vh - 60px);
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 48px 24px 80px;
+    }
+    .form-outer { width: 100%; max-width: 640px; }
+
+    /* ━━ ページヘッダー ━━ */
+    .page-header { text-align: center; margin-bottom: 36px; }
+    .page-header-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: var(--aibod-cyan-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; margin: 0 auto 16px;
+    }
+    .page-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .page-header p  { font-size: 15px; color: var(--color-text-second); }
+
+    /* ━━ フォームカード ━━ */
+    .form-card {
+      background: var(--color-surface);
+      border-radius: 20px; border: 1px solid var(--color-border);
+      padding: 36px; box-shadow: var(--shadow-card);
+    }
+
+    /* ━━ フォーム要素 ━━ */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: flex; align-items: center; gap: 4px;
+      margin-bottom: 7px; font-size: 13px; font-weight: 600;
+      color: var(--color-text-second);
+    }
+    .required-mark { color: var(--color-error); font-size: 12px; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; border: 1.5px solid var(--color-border);
+      border-radius: 12px; padding: 0 14px;
+      font-size: 15px; font-family: inherit;
+      color: var(--color-text-primary); background: var(--color-surface);
+      transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+    }
+    .form-input, .form-select { height: 50px; }
+    .form-textarea { padding: 14px; min-height: 130px; resize: vertical; line-height: 1.7; }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--color-text-hint); }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--aibod-cyan-light);
+    }
+    .form-input.error, .form-select.error, .form-textarea.error {
+      border-color: var(--color-error);
+      box-shadow: 0 0 0 3px rgba(231,76,60,0.1);
+    }
+    .form-select {
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 7L11 1' stroke='%2398A8BC' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .field-error {
+      display: none; font-size: 12px; color: var(--color-error);
+      margin-top: 5px; align-items: center; gap: 4px;
+    }
+    .field-error.show { display: flex; }
+
+    /* ━━ チェックボックスグループ ━━ */
+    .check-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .check-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; border-radius: 10px;
+      border: 1.5px solid var(--color-border);
+      cursor: pointer; transition: all 0.15s; user-select: none;
+    }
+    .check-item:hover { border-color: var(--color-primary); background: var(--aibod-cyan-light); }
+    .check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--color-primary); flex-shrink: 0; }
+    .check-item-label { font-size: 13px; font-weight: 500; }
+
+    /* ━━ プライバシー同意 ━━ */
+    .privacy-row {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 16px; border-radius: 12px;
+      background: var(--color-bg); border: 1.5px solid var(--color-border);
+      cursor: pointer; transition: border-color 0.15s;
+    }
+    .privacy-row:hover { border-color: var(--color-primary); }
+    .privacy-row input { width: 18px; height: 18px; accent-color: var(--color-primary); margin-top: 2px; flex-shrink: 0; }
+    .privacy-text { font-size: 13px; color: var(--color-text-second); line-height: 1.6; }
+    .privacy-text a { color: var(--color-primary); text-decoration: none; }
+    .privacy-text a:hover { text-decoration: underline; }
+
+    /* ━━ 送信ボタン ━━ */
+    .submit-section { margin-top: 28px; }
+    .btn-submit {
+      width: 100%; height: 54px;
+      background: var(--color-primary); color: #fff;
+      border: none; border-radius: 14px;
+      font-size: 16px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover { background: var(--aibod-cyan-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,196,204,0.35); }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+    .submit-note { text-align: center; font-size: 12px; color: var(--color-text-hint); margin-top: 12px; }
+
+    /* ━━ 送信後サンクス ━━ */
+    .thanks-card {
+      display: none; text-align: center; padding: 48px 24px;
+    }
+    .thanks-icon { font-size: 56px; margin-bottom: 16px; }
+    .thanks-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+    .thanks-desc  { font-size: 15px; color: var(--color-text-second); margin-bottom: 28px; }
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--color-primary); font-weight: 600; font-size: 14px;
+      text-decoration: none; cursor: pointer; border: none; background: none;
+      padding: 10px 20px; border-radius: 10px; border: 1px solid var(--aibod-cyan-light);
+      transition: background 0.15s;
+    }
+    .btn-back:hover { background: var(--aibod-cyan-light); }
+
+    /* ━━ レスポンシブ ━━ */
+    @media (max-width: 640px) {
+      .form-card { padding: 24px 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .check-group { grid-template-columns: 1fr; }
+      .page-wrap { padding: 32px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NavBar -->
+<nav class="navbar">
+  <a href="/" class="navbar-logo">AIBOD</a>
+  <button class="lang-btn" onclick="switchLang()">
+    <span data-i18n="nav.lang_switch">EN</span>
+  </button>
+</nav>
+
+<div class="page-wrap">
+  <div class="form-outer">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-header-icon">💬</div>
+      <h1 data-i18n="page.title">お問い合わせ</h1>
+      <p data-i18n="page.desc">どんな小さな課題でもお気軽にご相談ください。通常2営業日以内にご返答します。</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card" id="formCard">
+      <form id="contactForm" novalidate>
+
+        <!-- 名前 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="lastName">
+              <span data-i18n="form.last_name">姓</span>
+              <span class="required-mark">*</span>
+            </label>
+            <input class="form-input" type="text" id="lastName" name="lastName"
+              data-i18n-placeholder="form.last_name_ph" placeholder="山田" required>
+            <div class="field-error" id="lastNameErr">
+              <span>⚠</span><span data-i18n="err.required">必須項目です</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="firstName">
+              <span data-i18n="form.first_name">名</span>
+              <span class="required-mark">*</span>
+            </label>
+            <input class="form-input" type="text" id="firstName" name="firstName"
+              data-i18n-placeholder="form.first_name_ph" placeholder="太郎" required>
+            <div class="field-error" id="firstNameErr">
+              <span>⚠</span><span data-i18n="err.required">必須項目です</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 会社名 -->
+        <div class="form-group">
+          <label class="form-label" for="company">
+            <span data-i18n="form.company">会社名</span>
+          </label>
+          <input class="form-input" type="text" id="company" name="company"
+            data-i18n-placeholder="form.company_ph" placeholder="株式会社〇〇">
+        </div>
+
+        <!-- メール -->
+        <div class="form-group">
+          <label class="form-label" for="email">
+            <span data-i18n="form.email">メールアドレス</span>
+            <span class="required-mark">*</span>
+          </label>
+          <input class="form-input" type="email" id="email" name="email"
+            data-i18n-placeholder="form.email_ph" placeholder="name@company.com" required>
+          <div class="field-error" id="emailErr">
+            <span>⚠</span><span id="emailErrMsg" data-i18n="err.email">有効なメールアドレスを入力してください</span>
+          </div>
+        </div>
+
+        <!-- お問い合わせ種別 -->
+        <div class="form-group">
+          <label class="form-label" for="category">
+            <span data-i18n="form.category">お問い合わせ種別</span>
+            <span class="required-mark">*</span>
+          </label>
+          <select class="form-select" id="category" name="category" required>
+            <option value="" data-i18n="form.category_ph">選択してください</option>
+            <option value="factory" data-i18n="form.cat_factory">AIBOD Factory / ソフトウェア開発</option>
+            <option value="baiten"  data-i18n="form.cat_baiten">BAITEN STAND 導入</option>
+            <option value="energy"  data-i18n="form.cat_energy">エネルギー / HEMS</option>
+            <option value="ai"      data-i18n="form.cat_ai">製造AI / 検査システム</option>
+            <option value="other"   data-i18n="form.cat_other">その他</option>
+          </select>
+          <div class="field-error" id="categoryErr">
+            <span>⚠</span><span data-i18n="err.select">選択してください</span>
+          </div>
+        </div>
+
+        <!-- 興味のある機能 -->
+        <div class="form-group">
+          <div class="form-label" data-i18n="form.interests">興味のある機能（複数選択可）</div>
+          <div class="check-group">
+            <label class="check-item">
+              <input type="checkbox" name="interests" value="ai">
+              <span class="check-item-label" data-i18n="form.int_ai">AI / 機械学習</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="interests" value="iot">
+              <span class="check-item-label" data-i18n="form.int_iot">IoT / エッジ</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="interests" value="web">
+              <span class="check-item-label" data-i18n="form.int_web">Webアプリ開発</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="interests" value="data">
+              <span class="check-item-label" data-i18n="form.int_data">データ分析</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- メッセージ -->
+        <div class="form-group">
+          <label class="form-label" for="message">
+            <span data-i18n="form.message">メッセージ</span>
+            <span class="required-mark">*</span>
+          </label>
+          <textarea class="form-textarea" id="message" name="message"
+            data-i18n-placeholder="form.message_ph" placeholder="ご相談の内容をご記入ください..." required rows="5"></textarea>
+          <div class="field-error" id="messageErr">
+            <span>⚠</span><span data-i18n="err.required">必須項目です</span>
+          </div>
+        </div>
+
+        <!-- プライバシー同意 -->
+        <div class="form-group">
+          <label class="privacy-row">
+            <input type="checkbox" id="privacy" required>
+            <span class="privacy-text">
+              <span data-i18n="form.privacy_pre">送信することで</span>
+              <a href="#" data-i18n="form.privacy_link">プライバシーポリシー</a>
+              <span data-i18n="form.privacy_post">に同意したものとみなします</span>
+            </span>
+          </label>
+          <div class="field-error" id="privacyErr">
+            <span>⚠</span><span data-i18n="err.privacy">プライバシーポリシーへの同意が必要です</span>
+          </div>
+        </div>
+
+        <!-- 送信 -->
+        <div class="submit-section">
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <span data-i18n="form.submit">送信する</span>
+            <span>→</span>
+          </button>
+          <p class="submit-note" data-i18n="form.note">通常2営業日以内にご返答します</p>
+        </div>
+
+      </form>
+
+      <!-- サンクス画面 -->
+      <div class="thanks-card" id="thanksCard">
+        <div class="thanks-icon">✅</div>
+        <h2 class="thanks-title" data-i18n="thanks.title">送信が完了しました</h2>
+        <p class="thanks-desc" data-i18n="thanks.desc">お問い合わせありがとうございます。2営業日以内にご連絡いたします。</p>
+        <button class="btn-back" onclick="resetForm()">← <span data-i18n="thanks.back">フォームに戻る</span></button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const I18N = {
+  ja: {
+    meta: { title: "お問い合わせ — AIBOD" },
+    nav: { lang_switch: "EN" },
+    page: { title: "お問い合わせ", desc: "どんな小さな課題でもお気軽にご相談ください。通常2営業日以内にご返答します。" },
+    form: {
+      last_name: "姓", last_name_ph: "山田",
+      first_name: "名", first_name_ph: "太郎",
+      company: "会社名", company_ph: "株式会社〇〇",
+      email: "メールアドレス", email_ph: "name@company.com",
+      category: "お問い合わせ種別", category_ph: "選択してください",
+      cat_factory: "AIBOD Factory / ソフトウェア開発",
+      cat_baiten:  "BAITEN STAND 導入",
+      cat_energy:  "エネルギー / HEMS",
+      cat_ai:      "製造AI / 検査システム",
+      cat_other:   "その他",
+      interests:   "興味のある機能（複数選択可）",
+      int_ai:  "AI / 機械学習", int_iot: "IoT / エッジ", int_web: "Webアプリ開発", int_data: "データ分析",
+      message: "メッセージ", message_ph: "ご相談の内容をご記入ください...",
+      privacy_pre: "送信することで", privacy_link: "プライバシーポリシー", privacy_post: "に同意したものとみなします",
+      submit: "送信する", note: "通常2営業日以内にご返答します"
+    },
+    err: { required: "必須項目です", email: "有効なメールアドレスを入力してください", select: "選択してください", privacy: "プライバシーポリシーへの同意が必要です" },
+    thanks: { title: "送信が完了しました", desc: "お問い合わせありがとうございます。2営業日以内にご連絡いたします。", back: "フォームに戻る" }
+  },
+  en: {
+    meta: { title: "Contact Us — AIBOD" },
+    nav: { lang_switch: "日本語" },
+    page: { title: "Contact Us", desc: "Tell us about your challenge, big or small. We'll get back to you within 2 business days." },
+    form: {
+      last_name: "Last Name", last_name_ph: "Yamada",
+      first_name: "First Name", first_name_ph: "Taro",
+      company: "Company", company_ph: "ACME Corp.",
+      email: "Email Address", email_ph: "name@company.com",
+      category: "Inquiry Type", category_ph: "Select one",
+      cat_factory: "AIBOD Factory / Software Development",
+      cat_baiten:  "BAITEN STAND Installation",
+      cat_energy:  "Energy / HEMS",
+      cat_ai:      "Manufacturing AI / Inspection",
+      cat_other:   "Other",
+      interests:   "Areas of Interest (select all that apply)",
+      int_ai:  "AI / Machine Learning", int_iot: "IoT / Edge", int_web: "Web App Dev", int_data: "Data Analytics",
+      message: "Message", message_ph: "Tell us about your project or question...",
+      privacy_pre: "By submitting, you agree to our ", privacy_link: "Privacy Policy", privacy_post: ".",
+      submit: "Send Message", note: "We'll reply within 2 business days"
+    },
+    err: { required: "This field is required", email: "Please enter a valid email address", select: "Please make a selection", privacy: "You must agree to the Privacy Policy" },
+    thanks: { title: "Message Sent", desc: "Thank you for reaching out. We'll get back to you within 2 business days.", back: "Back to form" }
+  }
+};
+
+let currentLang = localStorage.getItem('aibod-lang') || 'ja';
+function t(key) { const ks=key.split('.'); let v=I18N[currentLang]; for(const k of ks){v=v?.[k];} return v||key; }
+
+function applyI18n() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
+  document.body.className = currentLang === 'en' ? 'lang-en' : '';
+}
+function switchLang() { currentLang = currentLang==='ja'?'en':'ja'; localStorage.setItem('aibod-lang',currentLang); applyI18n(); }
+
+function validate() {
+  let ok = true;
+  const rules = [
+    { id: 'lastName',  errId: 'lastNameErr',  check: v => v.trim().length > 0 },
+    { id: 'firstName', errId: 'firstNameErr', check: v => v.trim().length > 0 },
+    { id: 'email',     errId: 'emailErr',     check: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) },
+    { id: 'category',  errId: 'categoryErr',  check: v => v !== '' },
+    { id: 'message',   errId: 'messageErr',   check: v => v.trim().length > 10 },
+  ];
+  rules.forEach(r => {
+    const el = document.getElementById(r.id);
+    const err = document.getElementById(r.errId);
+    const valid = r.check(el.value);
+    el.classList.toggle('error', !valid);
+    err.classList.toggle('show', !valid);
+    if (!valid) ok = false;
+  });
+  const priv = document.getElementById('privacy');
+  const privErr = document.getElementById('privacyErr');
+  priv.closest('.privacy-row').style.borderColor = priv.checked ? '' : 'var(--color-error)';
+  privErr.classList.toggle('show', !priv.checked);
+  if (!priv.checked) ok = false;
+  return ok;
+}
+
+document.getElementById('contactForm').addEventListener('submit', e => {
+  e.preventDefault();
+  if (!validate()) return;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.children[0].textContent = currentLang === 'ja' ? '送信中...' : 'Sending...';
+  setTimeout(() => {
+    document.getElementById('contactForm').style.display = 'none';
+    document.getElementById('thanksCard').style.display = 'block';
+  }, 1200);
+});
+
+function resetForm() {
+  document.getElementById('contactForm').reset();
+  document.getElementById('contactForm').style.display = 'block';
+  document.getElementById('thanksCard').style.display = 'none';
+  document.getElementById('submitBtn').disabled = false;
+  document.querySelectorAll('.form-input,.form-select,.form-textarea').forEach(el => el.classList.remove('error'));
+  document.querySelectorAll('.field-error').forEach(el => el.classList.remove('show'));
+}
+
+['lastName','firstName','email','category','message'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById(id).classList.remove('error');
+    document.getElementById(id+'Err')?.classList.remove('show');
+  });
+});
+
+document.addEventListener('DOMContentLoaded', applyI18n);
+</script>
+</body>
+</html>

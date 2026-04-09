@@ -358,6 +358,77 @@ echo "  - VPN/踏み台サーバー経由の場合はその IP"
 
 ---
 
+### `ses-verify` — テスターメールの SES 検証
+
+Sandbox モードでテスターにメール送信するために必要。
+
+```bash
+#!/bin/bash
+
+AWS_REGION=ap-northeast-1
+
+# 引数でメールアドレスを受け取る
+EMAIL="${1:?Usage: ses-verify <email>}"
+
+aws ses verify-email-identity \
+  --email-address "$EMAIL" \
+  --region $AWS_REGION
+
+echo "✅ 検証メールを $EMAIL に送信しました。"
+echo "   受信者がメール内のリンクをクリックすると検証完了です。"
+echo ""
+echo "検証状態の確認:"
+echo "  aws ses get-identity-verification-attributes --identities $EMAIL --region $AWS_REGION"
+```
+
+---
+
+### `ses-status` — SES 送信状態確認
+
+```bash
+#!/bin/bash
+
+AWS_REGION=ap-northeast-1
+
+echo "=== SES アカウント状態 ==="
+aws sesv2 get-account --region $AWS_REGION \
+  --query "{ProductionAccess: ProductionAccessEnabled, SendingEnabled: SendingEnabled, SendQuota: SendQuota}"
+
+echo "=== 検証済みアイデンティティ ==="
+aws ses list-identities --region $AWS_REGION
+
+echo "=== 送信統計 ==="
+aws ses get-send-statistics --region $AWS_REGION \
+  --query "SendDataPoints | sort_by(@, &Timestamp) | [-5:]" --output table
+```
+
+---
+
+### `ses-instance-role` — App Runner Instance Role に SES 権限付与
+
+```bash
+#!/bin/bash
+
+aws iam put-role-policy \
+  --role-name AppRunnerInstanceRole \
+  --policy-name SES-FullAccess \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": ["ses:*"],
+        "Resource": "*"
+      }
+    ]
+  }'
+
+echo "✅ AppRunnerInstanceRole に SES 権限を付与しました。"
+echo "   再デプロイ不要（IAM変更は即時反映）。"
+```
+
+---
+
 ## aws-integrator との役割分担
 
 ```

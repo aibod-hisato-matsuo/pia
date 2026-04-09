@@ -477,6 +477,83 @@ $ → %24
 
 ---
 
+### `/aws ses` — SES メール設定・状態確認
+
+```bash
+AWS_REGION=ap-northeast-1
+
+echo "=== SES アカウント状態 ==="
+aws sesv2 get-account --region $AWS_REGION \
+  --query "{ProductionAccess: ProductionAccessEnabled, SendingEnabled: SendingEnabled, SendQuota: SendQuota}"
+
+echo "=== 検証済みアイデンティティ ==="
+aws ses list-identities --region $AWS_REGION
+
+echo "=== 送信統計（直近） ==="
+aws ses get-send-statistics --region $AWS_REGION \
+  --query "SendDataPoints | sort_by(@, &Timestamp) | [-5:]"
+```
+
+**テスターのメールを検証（Sandbox モードで必要）:**
+
+```bash
+# 個別のテスターメールを検証
+aws ses verify-email-identity --email-address tester@example.com --region ap-northeast-1
+
+# 検証状態を確認
+aws ses get-identity-verification-attributes \
+  --identities tester@example.com --region ap-northeast-1
+```
+
+**SES 本番アクセス申請:**
+
+[SES Console](https://ap-northeast-1.console.aws.amazon.com/ses/home?region=ap-northeast-1#/account) → "Request production access"
+- Mail type: Transactional
+- 説明例: "One-time magic link login emails for teachers. Expected < 100 emails/day."
+
+---
+
+## SES メール設定
+
+### 現在の構成
+
+| 項目 | 値 |
+|------|-----|
+| EMAIL_BACKEND | `django_ses.SESBackend` |
+| AWS_SES_REGION_NAME | `ap-northeast-1` |
+| DEFAULT_FROM_EMAIL | `おどってのびのび <matsuo@aibod.com>` |
+| Instance Role | `AppRunnerInstanceRole`（`ses:*` 許可） |
+| SES モード | Sandbox（検証済みアドレスのみ送信可） |
+
+### django-ses に必要な settings.py 設定
+
+```python
+AWS_SES_REGION_NAME = "ap-northeast-1"
+AWS_SES_REGION_ENDPOINT = f"email.{AWS_SES_REGION_NAME}.amazonaws.com"
+```
+
+### App Runner Instance Role に必要な IAM ポリシー
+
+```json
+{
+  "Effect": "Allow",
+  "Action": ["ses:*"],
+  "Resource": "*"
+}
+```
+
+### よくある SES エラー
+
+| エラー | 原因 | 対処 |
+|--------|------|------|
+| `No module named 'django_ses'` | requirements.txt に未追加 | `django-ses>=4.0` 追加 → 再ビルド |
+| `Email address is not verified ... US-EAST-1` | SES リージョン未設定 | `AWS_SES_REGION_NAME` + `AWS_SES_REGION_ENDPOINT` を settings.py に追加 |
+| `AccessDenied: ses:GetSendQuota` | Instance Role に SES 権限なし | `ses:*` を IAM ポリシーに追加 |
+| `MessageRejected` | Sandbox モードで未検証アドレスに送信 | 送信先を `ses verify-email-identity` で検証、または本番アクセス申請 |
+| メールがスパムフォルダに | SPF/DKIM 未設定 | ドメイン検証 + DKIM 設定を推奨 |
+
+---
+
 ## よくある失敗パターン（Lessons Learned）
 
 1. **Apple Silicon + App Runner**: `--platform linux/amd64` を付けないと `exec format error`
@@ -489,3 +566,6 @@ $ → %24
 8. **CREATE_FAILED 復旧**: 失敗サービスは削除してから再作成（再デプロイは不可）
 9. **Secrets Manager**: 平文の env vars より Secrets Manager 参照を推奨
 10. **ロールバック**: ECR に前回イメージが残っていればダイジェスト指定で即時ロールバック可能
+11. **SES リージョン**: `django-ses` は `AWS_SES_REGION_NAME` + `AWS_SES_REGION_ENDPOINT` の両方が必要。デフォルトは us-east-1 になる
+12. **SES Sandbox**: 検証済みアドレスにしか送信できない。テスターは個別に `verify-email-identity` が必要
+13. **SES Instance Role**: App Runner の InstanceRole に `ses:*` が必要（`ses:SendEmail` だけでは `GetSendQuota` でエラー）

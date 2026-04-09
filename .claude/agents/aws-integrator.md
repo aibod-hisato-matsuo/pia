@@ -251,7 +251,63 @@ fi
 
 ---
 
-### Step 6: API エンドポイント確認
+### Step 6: SES メール診断
+
+```bash
+AWS_REGION=ap-northeast-1
+
+echo "=== SES アカウント状態 ==="
+aws sesv2 get-account --region $AWS_REGION \
+  --query "{ProductionAccess: ProductionAccessEnabled, SendingEnabled: SendingEnabled, SendQuota: SendQuota}"
+
+echo "=== 検証済みアイデンティティ ==="
+aws ses list-identities --region $AWS_REGION
+
+echo "=== 検証ステータス ==="
+IDENTITIES=$(aws ses list-identities --region $AWS_REGION --query "Identities" --output text)
+if [ -n "$IDENTITIES" ]; then
+  aws ses get-identity-verification-attributes \
+    --identities $IDENTITIES --region $AWS_REGION
+fi
+
+echo "=== 送信統計（直近5件） ==="
+aws ses get-send-statistics --region $AWS_REGION \
+  --query "SendDataPoints | sort_by(@, &Timestamp) | [-5:]"
+
+echo "=== App Runner Instance Role ==="
+SERVICE_ARN=$(aws apprunner list-services \
+  --query "ServiceSummaryList[?ServiceName=='fieldup-backend'].ServiceArn" \
+  --output text --region $AWS_REGION)
+ROLE_ARN=$(aws apprunner describe-service --service-arn $SERVICE_ARN \
+  --region $AWS_REGION \
+  --query "Service.InstanceConfiguration.InstanceRoleArn" --output text)
+echo "Instance Role: $ROLE_ARN"
+if [ "$ROLE_ARN" != "None" ] && [ -n "$ROLE_ARN" ]; then
+  ROLE_NAME=$(echo $ROLE_ARN | awk -F/ '{print $NF}')
+  aws iam list-role-policies --role-name $ROLE_NAME
+fi
+```
+
+**SES エラーパターン:**
+
+| エラー | 原因 | 重要度 |
+|--------|------|--------|
+| `No module named 'django_ses'` | requirements.txt に未追加 | 🔴 再ビルド必要 |
+| `Email address is not verified ... US-EAST-1` | SES リージョン未設定 | 🔴 settings.py 修正 |
+| `AccessDenied: ses:GetSendQuota` | Instance Role に SES 権限なし | 🔴 IAM ポリシー追加 |
+| `MessageRejected` (Sandbox) | 未検証アドレスに送信 | 🟡 検証 or 本番申請 |
+| メールがスパム | SPF/DKIM 未設定 | 🟡 ドメイン検証推奨 |
+| Instance Role が null | InstanceRoleArn 未設定 | 🔴 update-service で追加 |
+
+**必要な settings.py 設定:**
+```python
+AWS_SES_REGION_NAME = "ap-northeast-1"  # デフォルト us-east-1 になるので必須
+AWS_SES_REGION_ENDPOINT = f"email.{AWS_SES_REGION_NAME}.amazonaws.com"
+```
+
+---
+
+### Step 7: API エンドポイント確認
 
 ```bash
 AWS_REGION=ap-northeast-1
@@ -326,3 +382,7 @@ curl -s --max-time 10 "https://${SERVICE_URL}/api/v2/dance/references" || \
 7. **OPERATION_IN_PROGRESS が15分超**: AWS コンソールでの手動確認を推奨
 8. **CREATE_FAILED**: 削除してから再作成が必要（再デプロイ不可）
 9. **変更は行わない**: このエージェントは診断のみ。実行は aws-deployer に委譲すること
+10. **SES リージョン**: `django-ses` は `AWS_SES_REGION_NAME` + `AWS_SES_REGION_ENDPOINT` の両方が必要。未設定だと us-east-1 にフォールバックする
+11. **SES Sandbox**: 検証済みアドレスにのみ送信可能。テスターは `ses verify-email-identity` で個別検証が必要
+12. **SES Instance Role**: `ses:SendEmail` だけでは不足。`django-ses` は `ses:GetSendQuota` も使用するため `ses:*` を推奨
+13. **SES メールがスパム**: sender address が SPF/DKIM 未設定の場合スパム判定されやすい。ドメイン検証を推奨

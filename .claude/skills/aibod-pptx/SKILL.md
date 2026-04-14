@@ -14,147 +14,233 @@ description: |
 ## 概要
 
 このスキルは、株式会社AIBODのブランドガイドラインに準拠したPowerPointプレゼンテーションを
-作成するためのものです。既存のAIBODテンプレートPPTXを必ずベースとして使用してください。
+**pptxgenjs（Node.js）を使って新規に作成**するためのものです。
 
-## テンプレートファイル
+既存のPPTXファイルをベースとして使用しては**いけません**。
+デザインを統一するためにSKILLに定義されたカラーパレット・レイアウトルールに従い、
+コードから一から生成してください。
 
-**必須**: 以下のテンプレートを常にベースとして使用すること：
-
-```
-assets/AIBOD_template.pptx
-```
-
-このファイルには66枚のスライドが含まれており、AIBODの全ブランドデザイン要素が含まれています。
+---
 
 ## AIBODブランドデザインシステム
 
-### カラーパレット
+### カラーパレット（# なし形式）
 
-| 用途 | 色 | HEX |
-|------|-----|-----|
-| プライマリ（ダークネイビー） | 背景・タイトルスライド | `#0D1B2A` |
-| セカンダリ（ティール） | アクセント・見出し | `#008B9B` または `#00B4D8` |
-| ホワイト | テキスト・コンテンツスライド背景 | `#FFFFFF` |
-| ライトブルー | ヘッダーバー | `#5BB3C4` |
-| アクセントブルー | 強調テキスト | `#00AEEF` |
-| ピンク/マゼンタ | 特定コンセプト（Lean Integrationなど） | `#FF00A0` |
+```javascript
+const C = {
+  navyDark:   "0D1B2A",   // タイトル/ダーク背景
+  teal:       "008B9B",   // ヘッダーバー・アクセント・バッジ
+  tealLight:  "5BB3C4",   // ヘッダーバー（コンテンツスライド）
+  tealBright: "00AEEF",   // 強調テキスト
+  tealMid:    "009FB7",   // 中間アクセント
+  white:      "FFFFFF",
+  offWhite:   "F5F8FA",   // コンテンツスライド背景
+  navyText:   "1A2B3C",   // 本文テキスト（濃紺）
+  grayLight:  "E8EEF2",   // テーブルボーダー・区切り線
+  grayMid:    "7A8B99",   // サブテキスト
+};
+```
 
 ### スライドタイプとレイアウト
 
-テンプレートには以下のタイプのスライドが含まれています：
+| タイプ | 背景色 | 特徴 |
+|--------|--------|------|
+| タイトルスライド | navyDark | ティール三角形グラフィック、白文字、右下AIBODロゴ |
+| ダークスライド | navyDark / 0A1520 | 左アクセントバー、白テキスト、右下AIBODロゴ |
+| コンテンツスライド | white / offWhite | tealLightヘッダーバー、右上AIBODテキスト |
 
-1. **タイトルスライド**: ダークネイビー背景、大きなAIBODロゴ三角形グラフィック、白文字
-2. **セクション区切り**: ダークネイビー背景、白のセクションタイトル
-3. **コンテンツスライド（白背景）**: ライトブルーのヘッダーバー、右上にAIBODロゴ、ネイビーテキスト
-4. **ダーク企業紹介スライド**: 暗い背景画像、ネイビーグラデーション、白テキスト
-5. **パーパス/ビジョンスライド**: 写真背景、大きな白テキスト
+### 共通ヘルパー関数（必ず実装すること）
 
-### タイポグラフィ
+#### addContentHeader(slide, title) — コンテンツスライド用
+```javascript
+function addContentHeader(slide, title) {
+  slide.addShape(pres.shapes.RECTANGLE, {
+    x: 0, y: 0, w: 10, h: 0.75,
+    fill: { color: C.tealLight }, line: { color: C.tealLight }
+  });
+  slide.addText(title, {
+    x: 0.3, y: 0, w: 8.5, h: 0.75,
+    fontSize: 22, bold: true, color: C.navyDark,
+    fontFace: "Arial", valign: "middle", margin: 0
+  });
+  slide.addText("AIBOD", {
+    x: 8.6, y: 0.05, w: 1.3, h: 0.65,
+    fontSize: 14, bold: true, color: C.navyDark,
+    fontFace: "Arial Black", align: "right", valign: "middle"
+  });
+  slide.addShape(pres.shapes.RIGHT_TRIANGLE, {
+    x: 9.7, y: 0, w: 0.3, h: 0.75,
+    fill: { color: C.teal }, line: { color: C.teal }, flipH: true
+  });
+}
+```
 
-- **見出し**: 太字（Bold）、白またはネイビー
-- **本文**: レギュラーウェイト、ネイビー（白背景）または白（ダーク背景）
-- **アクセント**: ティールまたはピンクで強調テキスト
-- **フォント**: Google Slidesからエクスポートされたためシステムフォント互換
+#### addDarkLogo(slide) — ダークスライド用
+```javascript
+function addDarkLogo(slide) {
+  slide.addShape(pres.shapes.RECTANGLE, {
+    x: 8.8, y: 4.8, w: 1.2, h: 0.825,
+    fill: { color: C.teal }, line: { color: C.teal }
+  });
+  slide.addText("AIBOD", {
+    x: 8.8, y: 4.8, w: 1.2, h: 0.825,
+    fontSize: 14, bold: true, color: C.white,
+    fontFace: "Arial Black", align: "center", valign: "middle", margin: 0
+  });
+}
+```
 
 ---
 
 ## 作業ワークフロー
 
-### Step 1: pptxスキルを参照
-
-このスキルはAIBODのデザインガイドを提供します。技術的な編集手順は
-`/sessions/kind-exciting-fermat/mnt/.claude/skills/pptx/SKILL.md` および
-`/sessions/kind-exciting-fermat/mnt/.claude/skills/pptx/editing.md` に従ってください。
-
-### Step 2: テンプレートの準備
+### Step 1: npm環境の確認
 
 ```bash
-# テンプレートをコピー（テンプレート自体を壊さないように）
-cp "SKILL_DIR/assets/AIBOD_template.pptx" "/sessions/kind-exciting-fermat/working_output.pptx"
-
-# テンプレートを展開
-python /sessions/kind-exciting-fermat/mnt/.claude/skills/pptx/scripts/office/unpack.py \
-  /sessions/kind-exciting-fermat/working_output.pptx \
-  /sessions/kind-exciting-fermat/unpacked_output/
+node -e "require('/sessions/kind-exciting-fermat/npm_local/node_modules/pptxgenjs'); console.log('OK')"
 ```
 
-### Step 3: スライド構成の計画
+インストールされていない場合：
+```bash
+npm install --prefix /sessions/kind-exciting-fermat/npm_local pptxgenjs
+```
 
-テンプレートの66枚のスライドから、コンテンツに合ったレイアウトを選択します：
+### Step 2: スクリプト作成
 
-**よく使うスライドのマッピング例**:
-- スライド1 (slide1.xml) → **タイトルページ**（ダークネイビー、AIBODロゴ大）
-- スライド2 (slide2.xml) → **キャッチフレーズ/ミッション**（ダークネイビー）
-- スライド3 (slide3.xml) → **社名・ブランド説明**（白背景）
-- スライド4 (slide4.xml) → **パーパス/ビジョン**（写真背景）
-- スライド5 (slide5.xml) → **会社概要テーブル**（白背景）
-- スライド6 (slide6.xml) → **人物プロフィール**（ダーク背景）
-- スライド8 (slide8.xml) → **方針・考え方（3点）**（白背景）
-- スライド10 (slide10.xml) → **強み（3点アイコン付き）**（白背景）
-- スライド11 (slide11.xml) → **事業内容**（白背景、図解）
+/sessions/kind-exciting-fermat/create_slides.js として作成する。
 
-### Step 4: 不要なスライドの削除
+```javascript
+const pptxgen = require("/sessions/kind-exciting-fermat/npm_local/node_modules/pptxgenjs");
+const pres = new pptxgen();
+pres.layout = "LAYOUT_16x9";
 
-`ppt/presentation.xml` の `<p:sldIdLst>` から不要なスライドのエントリを削除し、
-その後 `clean.py` を実行してください。
+const C = { /* カラーパレット */ };
+function addContentHeader(slide, title) { /* ... */ }
+function addDarkLogo(slide) { /* ... */ }
 
-### Step 5: コンテンツの編集
+// スライドを追加...
 
-各スライドXMLを編集します。詳細は pptxスキルの `editing.md` を参照。
+pres.writeFile({ fileName: "/sessions/kind-exciting-fermat/mnt/outputs/OUTPUT.pptx" })
+  .then(() => console.log("✅ Created"))
+  .catch(err => { console.error("❌", err); process.exit(1); });
+```
 
-**重要なルール**:
-- 右上のAIBODロゴは絶対に削除しない
-- ヘッダーバーのティールカラーは維持する
-- テキストは日本語を基本とする（英語混在OK）
-- スライド番号プレースホルダー `‹#›` は削除する
-
-### Step 6: パックと確認
+### Step 3: 実行
 
 ```bash
-python /sessions/kind-exciting-fermat/mnt/.claude/skills/pptx/scripts/clean.py \
-  /sessions/kind-exciting-fermat/unpacked_output/
+node /sessions/kind-exciting-fermat/create_slides.js
+```
 
-python /sessions/kind-exciting-fermat/mnt/.claude/skills/pptx/scripts/office/pack.py \
-  /sessions/kind-exciting-fermat/unpacked_output/ \
-  /sessions/kind-exciting-fermat/mnt/outputs/output.pptx \
-  --original /sessions/kind-exciting-fermat/working_output.pptx
+### Step 4: ビジュアルQA（必須）
+
+```bash
+soffice --headless --convert-to pdf "mnt/outputs/OUTPUT.pptx" --outdir /tmp/qa/
+pdftoppm -r 120 "/tmp/qa/OUTPUT.pdf" /tmp/qa/slide
+for f in /tmp/qa/slide*.ppm; do convert "$f" "${f%.ppm}.jpg"; done
+```
+
+各スライドの画像を Read ツールで確認する。
+
+---
+
+## スライドパターン集
+
+### タイトルスライド（ダークネイビー）
+```javascript
+const slide = pres.addSlide();
+slide.background = { color: C.navyDark };
+slide.addShape(pres.shapes.RIGHT_TRIANGLE, {
+  x: -1.5, y: -0.5, w: 5.5, h: 6.5,
+  fill: { color: C.teal, transparency: 30 },
+  line: { color: C.teal, transparency: 30 }
+});
+slide.addText("タイトル", {
+  x: 0.8, y: 1.5, w: 8.4, h: 1.4,
+  fontSize: 44, bold: true, color: C.white, fontFace: "Arial", align: "left"
+});
+slide.addShape(pres.shapes.RECTANGLE, {
+  x: 0.8, y: 3.0, w: 2.2, h: 0.5,
+  fill: { color: C.teal }, line: { color: C.teal }
+});
+slide.addText("サブタイトル", {
+  x: 0.8, y: 3.0, w: 2.2, h: 0.5,
+  fontSize: 20, bold: true, color: C.white, align: "center", valign: "middle", margin: 0
+});
+addDarkLogo(slide);
+```
+
+### コンテンツスライド（3カラムカード）
+```javascript
+const slide = pres.addSlide();
+slide.background = { color: C.offWhite };
+addContentHeader(slide, "スライドタイトル");
+
+[{num:"01",title:"STEP１"},{num:"02",title:"STEP２"},{num:"03",title:"STEP３"}].forEach((step, i) => {
+  const x = 0.3 + i * 3.25, y = 0.95;
+  slide.addShape(pres.shapes.RECTANGLE, { x, y, w: 3.0, h: 4.3,
+    fill: { color: C.white }, line: { color: C.grayLight, width: 1 } });
+  slide.addShape(pres.shapes.RECTANGLE, { x, y, w: 3.0, h: 0.55,
+    fill: { color: C.teal }, line: { color: C.teal } });
+  slide.addText(step.num, { x: x+0.08, y, w: 0.7, h: 0.55,
+    fontSize: 24, bold: true, color: C.white, fontFace: "Arial Black",
+    align: "center", valign: "middle", margin: 0 });
+  slide.addText(step.title, { x: x+0.1, y: y+0.6, w: 2.8, h: 0.75,
+    fontSize: 15, bold: true, color: C.navyText });
+});
+```
+
+### ダークスライド（コンセプト・まとめ）
+```javascript
+const slide = pres.addSlide();
+slide.background = { color: "0A1520" };
+slide.addShape(pres.shapes.RECTANGLE, {
+  x: 0, y: 0, w: 0.35, h: 5.625,
+  fill: { color: C.teal }, line: { color: C.teal }
+});
+slide.addText("メインメッセージ", {
+  x: 0.7, y: 0.6, w: 8.8, h: 0.9,
+  fontSize: 24, bold: true, color: C.white, fontFace: "Arial"
+});
+addDarkLogo(slide);
+```
+
+### テーブルスライド
+```javascript
+const rows = [
+  [
+    { text: "列1", options: { bold: true, color: C.white, fill: { color: C.teal } } },
+    { text: "列2", options: { bold: true, color: C.white, fill: { color: C.teal } } },
+  ],
+  [
+    { text: "データ", options: { color: C.navyText } },
+    { text: "値", options: { bold: true, color: C.teal, align: "center" } },
+  ],
+];
+slide.addTable(rows, {
+  x: 0.3, y: 0.9, w: 9.4,
+  border: { pt: 1, color: C.grayLight },
+  valign: "middle",
+});
 ```
 
 ---
 
-## テンプレートスライド一覧（主要なもの）
+## 重要なルール
 
-| スライド番号 | ファイル | レイアウトタイプ | 主な用途 |
-|------------|---------|--------------|---------|
-| 1 | slide1.xml | タイトル（ダーク） | トップページ |
-| 2 | slide2.xml | キャッチ（ダーク） | ミッション |
-| 3 | slide3.xml | コンテンツ（白） | ブランド説明 |
-| 4 | slide4.xml | パーパス（写真BG） | ビジョン |
-| 5 | slide5.xml | テーブル（白） | 会社概要 |
-| 6 | slide6.xml | プロフィール（ダーク） | 代表者紹介 |
-| 7 | slide7.xml | チーム（白） | メンバー紹介 |
-| 8 | slide8.xml | 3点説明（白） | 方針・考え方 |
-| 9 | slide9.xml | コンセプト（白） | AIBODコンセプト |
-| 10 | slide10.xml | 強み3点（白） | 差別化要因 |
-| 11 | slide11.xml | 事業内容（白） | サービス概要 |
+- **絵文字は使わない** — 表示が不安定。番号（01/02/03）や記号テキストを使う
+- **ロゴはテキスト "AIBOD"** — 画像ファイルに依存しない
+- **カラーコードは # なし** — pptxgenjsの仕様
+- **フォントは "Arial"** または **"Arial Black"** — 日本語はシステムフォントにフォールバック
+- **スライドサイズは 10" x 5.625"** — LAYOUT_16x9
+- **assets/AIBOD_template.pptx は使わない** — 新規PPTXのベースとして使用しないこと
 
 ---
 
-## QA チェックリスト
-
-作成後に必ず確認：
+## QAチェックリスト
 
 - [ ] AIBODロゴが全コンテンツスライドの右上にある
+- [ ] ダークスライドにはaddDarkLogo()が呼ばれている
 - [ ] カラーテーマが一貫している（ネイビー×ティール）
 - [ ] 日本語テキストが正しく表示される
-- [ ] スライド番号プレースホルダー（‹#›）が残っていない
-- [ ] 全スライドにビジュアル要素がある（テキストのみのスライドは避ける）
-- [ ] ファイルがPowerPointで正しく開ける
-
----
-
-## SKILL_DIR変数について
-
-このスキルファイルがある場所を `SKILL_DIR` と表記しています。
-実際のパスはシステムによって異なりますが、
-`assets/AIBOD_template.pptx` は常にSKILL_MDと同じディレクトリのassetsフォルダにあります。
+- [ ] 絵文字を使っていない
+- [ ] ファイルがPowerPointで正しく開ける（QA済み）
